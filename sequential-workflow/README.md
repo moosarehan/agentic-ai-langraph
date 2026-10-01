@@ -307,3 +307,28 @@ The quality difference comes from **decomposition** — breaking a complex task 
 4. **Prompt chaining is a common pattern** — Breaking a complex LLM task into multiple focused steps produces better results than a single monolithic prompt.
 
 5. **State is the backbone** — The `TypedDict` state is how data flows between nodes. As workflows get more complex, the state grows to carry more information.
+
+---
+
+## The Hidden Advantage: Full Visibility Into Every Step
+
+Even though we said LangGraph is overkill for sequential workflows, building the prompt chaining workflow in LangGraph already gives us one clear advantage over LangChain — **we can see the output of every single LLM call, not just the last one.**
+
+When the workflow finishes, the final state contains **all** the key-value pairs:
+
+```python
+print(final_state['title'])    # The original input
+print(final_state['outline'])  # Output of the FIRST LLM call
+print(final_state['content'])  # Output of the SECOND LLM call
+```
+
+In LangChain, a chain typically only returns the **last step's output**. If you chained "generate outline → write blog" in LangChain, you'd get the blog content at the end — but the outline would be gone. You'd have to add extra logging or custom callbacks to capture intermediate results.
+
+In LangGraph, **the state preserves everything**. Every node writes its output to a specific key in the state dictionary, and that key stays there for the rest of the execution. Nothing gets lost. By the time the workflow reaches `END`, the state is a complete record of every piece of data produced at every step.
+
+This matters for:
+- **Debugging** — You can inspect what each node produced and pinpoint where things went wrong.
+- **Transparency** — You can show users the intermediate steps (e.g., "Here's the outline we generated, and here's the full blog based on it").
+- **Iteration** — You could take the outline, let a user modify it, and re-run only the second step with the modified outline.
+
+This is a direct consequence of LangGraph's state-centric architecture. The graph doesn't just pass data forward like a pipeline — it **maintains** all state across every step. And this advantage only becomes more powerful as workflows grow more complex.
