@@ -43,7 +43,8 @@ sequenceDiagram
     H-->>F: Approve / reject / edit
     F->>G: invoke(Command(resume=response), same config)
     G->>C: Restore the interrupted thread
-    G->>G: Restart interrupted node; interrupt returns response
+    G->>G: Restart interrupted node from its beginning
+    G->>G: interrupt() returns the human response
     G->>G: Apply decision and continue graph
     G-->>F: Final result or another interrupt
 ```
