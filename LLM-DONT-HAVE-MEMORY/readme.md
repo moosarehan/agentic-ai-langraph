@@ -2,7 +2,7 @@
 
 An LLM can appear to remember your name, earlier questions, and preferences. In most chat applications, this continuity comes from the **application storing information and supplying the relevant parts to the model again**.
 
-These notes follow the thirteen supplied pictures in order. Each picture is redrawn using a diagram or equation, followed by a refined explanation. The original pictures are included in expandable sections for reference.
+These notes follow the thirteen supplied pictures in order. Each original picture is displayed directly, followed by its explanation.
 
 ## Contents
 
@@ -18,25 +18,7 @@ These notes follow the thirteen supplied pictures in order. Each picture is redr
 
 ## 1. An LLM as a parameterized mathematical function — Picture 1
 
-### Redraw
-
-$$
-y = f_{\theta}(x)
-$$
-
-```mermaid
-flowchart LR
-    X["x: current input context"] --> F["Model function f with learned parameters theta"]
-    T["theta: parameters learned during training"] --> F
-    F --> Y["y: generated output"]
-```
-
-<details>
-<summary>Original Picture 1</summary>
-
 ![Picture 1: An LLM at inference is a parameterized mathematical function](images/picture-1.png)
-
-</details>
 
 ### What is a parameterized function?
 
@@ -82,22 +64,7 @@ The equation is a teaching simplification. An autoregressive model predicts the 
 
 ## 2. Why model calls are stateless — Picture 2
 
-### Redraw
-
-```mermaid
-flowchart TD
-    A["Call 1 input: My name is Musa"] --> M1["Model with fixed theta"]
-    M1 --> O1["Hello, Musa"]
-    B["Independent Call 2 input: What is my name?"] --> M2["Same model parameters"]
-    M2 --> O2["Earlier name is unavailable unless supplied again"]
-```
-
-<details>
-<summary>Original Picture 2</summary>
-
 ![Picture 2: The mathematical function is stateless across calls](images/picture-2.png)
-
-</details>
 
 A stateless interface does not automatically carry application state from one request into the next. If the second request contains no earlier messages or restored context, the model has no reliable basis for recalling what this user said in the first request.
 
@@ -124,23 +91,7 @@ This is an architectural problem with a practical solution, rather than a litera
 
 ## 4. The context window — Picture 3
 
-### Redraw: the camera-lens analogy
-
-```mermaid
-flowchart LR
-    A["Conversation and available information"] --> B["Small lens: limited visible context"]
-    A --> C["Larger lens: more visible context"]
-    B --> D["Answer from the information currently visible"]
-    C --> D
-    D --> E["A wider view is not permanent storage"]
-```
-
-<details>
-<summary>Original Picture 3</summary>
-
 ![Picture 3: Smaller and larger context windows illustrated as camera lenses](images/picture-3.png)
-
-</details>
 
 The **context window** is the model's bounded capacity for processing tokens in a generation. The usable budget must account for the model's rules about input, output, and, where applicable, other token categories.
 
@@ -152,22 +103,7 @@ The camera analogy is useful: a bigger lens can see more of the scene at once. A
 
 ## 5. In-context learning — Picture 4
 
-### Redraw
-
-```mermaid
-flowchart LR
-    K["Knowledge learned in parameters"] --> L["LLM inference"]
-    P["Current prompt: instructions, examples and information"] --> L
-    L --> A["Response conditioned on current context"]
-    L --> W["No weight update required for this interaction"]
-```
-
-<details>
-<summary>Original Picture 4</summary>
-
 ![Picture 4: In-context learning uses information and patterns in the prompt](images/picture-4.png)
-
-</details>
 
 **In-context learning** describes adapting behavior using patterns, instructions, or demonstrations supplied in the input, without a task-specific weight update during that interaction. A foundational reference is Brown et al. (2020), [Language Models are Few-Shot Learners](https://arxiv.org/abs/2005.14165), which evaluated GPT-3 with text-supplied instructions and examples.
 
@@ -264,26 +200,7 @@ Checkpoints can include other graph-state fields in addition to messages. A sepa
 
 ## 8. Limitation 2: the context-window problem — Picture 5
 
-### Redraw
-
-```mermaid
-flowchart LR
-    H["Long conversation history"] --> O["Older messages"]
-    H --> R["Recent messages retained"]
-    O --> S["Compact summary of older context"]
-    S --> P["Hybrid prompt within token budget"]
-    R --> P
-    Q["Current question and required instructions"] --> P
-    P --> L["LLM"]
-    L --> A["Response using available context"]
-```
-
-<details>
-<summary>Original Picture 5</summary>
-
 ![Picture 5: Trim recent messages and summarize older context](images/picture-5.png)
-
-</details>
 
 ### 8.1 A growing list eventually becomes too large
 
@@ -339,24 +256,7 @@ This combination often preserves continuity more efficiently, but it does not gu
 
 ## 9. Limitation 3: STM is thread-scoped — Picture 6
 
-### Redraw
-
-```mermaid
-flowchart TD
-    A["Thread A: user states a preference"] --> CA["A's checkpointed state"]
-    B["Thread B: a different conversation"] --> CB["B's checkpointed state"]
-    CA --> X["No automatic transfer into B"]
-    X --> P1["User continuity is missing across threads"]
-    X --> P2["Useful lessons are not automatically reused"]
-    X --> P3["Cross-thread evidence needs an added retrieval path"]
-```
-
-<details>
-<summary>Original Picture 6</summary>
-
 ![Picture 6: Thread-scoped short-term memory limits cross-conversation continuity](images/picture-6.png)
-
-</details>
 
 Suppose the user says in Thread A, “I prefer explanations with small Python examples.” In Thread B, the application loads B's state. A's preference does not automatically appear there, even if A's complete history is safely stored in a database.
 
@@ -373,24 +273,7 @@ Reopening A is not the same as helping B. Copying every old transcript into B is
 
 ## 10. The solution: selective long-term memory — Picture 7
 
-### Redraw
-
-```mermaid
-flowchart TD
-    A["Information from interactions"] --> F["Select stable, useful and reusable information"]
-    F --> M["Long-term memory store"]
-    M --> T1["Relevant context for Thread A"]
-    M --> T2["Relevant context for Thread B"]
-    M --> T3["Relevant context in a later session"]
-    F --> I["Ignore or expire temporary noise"]
-```
-
-<details>
-<summary>Original Picture 7</summary>
-
 ![Picture 7: Selective information should survive beyond one conversation](images/picture-7.png)
-
-</details>
 
 **Long-term memory (LTM)** stores selected information outside one thread so it can be recalled in other appropriate conversations. It can include a user's preferences, important decisions, relevant experiences, and approved ways of working.
 
@@ -409,24 +292,7 @@ The labels STM and LTM describe **recall scope**, while RAM and database describ
 
 ## 11. Three types of long-term memory — Picture 8
 
-### Redraw
-
-```mermaid
-flowchart TD
-    M["Long-term memory in an agent system"] --> E["Episodic: what happened"]
-    M --> S["Semantic: facts and preferences"]
-    M --> P["Procedural: how to act"]
-    E --> E1["Events, outcomes and past decisions"]
-    S --> S1["Stable knowledge with an appropriate scope"]
-    P --> P1["Strategies, rules and approved workflows"]
-```
-
-<details>
-<summary>Original Picture 8</summary>
-
 ![Picture 8: Episodic, semantic and procedural memory](images/picture-8.png)
-
-</details>
 
 These are useful design categories inspired by human memory, not claims that an agent has a human brain. An application may implement one or several categories.
 
@@ -458,25 +324,7 @@ External procedural-memory updates do not automatically retrain model weights. T
 
 ## 12. Step 1: create or update memories — Picture 9
 
-### Redraw
-
-```mermaid
-flowchart TD
-    U["User messages"] --> C["Extract memory candidates"]
-    A["Assistant responses"] --> C
-    T["Tool outcomes"] --> C
-    C --> V["Check usefulness, evidence and scope"]
-    V --> N["Create a new memory"]
-    V --> E["Update or supersede an existing memory"]
-    V --> I["Ignore noise or unsupported claims"]
-```
-
-<details>
-<summary>Original Picture 9</summary>
-
 ![Picture 9: Create or update only information worth retaining](images/picture-9.png)
-
-</details>
 
 Ask: **Is anything from this interaction useful beyond this conversation?**
 
@@ -492,24 +340,7 @@ Writes can happen during the request or afterward in background work. Immediate 
 
 ## 13. Step 2: store the memory — Picture 10
 
-### Redraw
-
-```mermaid
-flowchart LR
-    M["Selected memory"] --> K["Assign ID, scope and provenance"]
-    K --> D["Durable storage"]
-    D --> R["Relational database"]
-    D --> V["Key-value or document store"]
-    D --> E["Event log"]
-    D --> S["Vector index when similarity lookup is useful"]
-```
-
-<details>
-<summary>Original Picture 10</summary>
-
 ![Picture 10: Storage, identifiers, metadata and durable backends](images/picture-10.png)
-
-</details>
 
 Storage makes information available beyond the current request. To survive restarts, the chosen storage must actually be durable and retained by the deployment.
 
@@ -536,23 +367,7 @@ Embedding a memory does not make it permanently correct. Preserve the original m
 
 ## 14. Step 3: retrieve relevant memories — Picture 11
 
-### Redraw
-
-```mermaid
-flowchart LR
-    Q["Current request and conversation"] --> N["Determine relevant memory needs"]
-    N --> F["Restrict to authorized user and project scope"]
-    F --> S["Lookup, filter or search memory"]
-    S --> R["Check relevance, recency and validity"]
-    R --> M["Select a small useful subset"]
-```
-
-<details>
-<summary>Original Picture 11</summary>
-
 ![Picture 11: Retrieve selectively according to the current situation](images/picture-11.png)
-
-</details>
 
 Ask: **Which saved information matters for this request?**
 
@@ -566,25 +381,7 @@ Retrieval is selective, not exhaustive. “The store contains it” and “the m
 
 ## 15. Step 4: inject selected memory into context — Picture 12
 
-### Redraw
-
-```mermaid
-flowchart LR
-    L["Long-term store"] --> R["Retrieve selected memories"]
-    R --> P["Build this turn's context"]
-    S["Thread summary and recent messages"] --> P
-    Q["Current question"] --> P
-    I["Application instructions"] --> P
-    P --> M["LLM inference"]
-    M --> A["Response informed by available memories"]
-```
-
-<details>
-<summary>Original Picture 12</summary>
-
 ![Picture 12: Retrieved memory influences the model through its current context](images/picture-12.png)
-
-</details>
 
 Ask: **How will the saved information affect this model call?**
 
@@ -606,24 +403,7 @@ Every injected item still consumes context budget. LTM expands the information a
 
 ## 16. The challenges of long-term memory — Picture 13
 
-### Redraw
-
-```mermaid
-flowchart TD
-    L["Long-term memory system"] --> W["What is worth remembering?"]
-    L --> R["Which memory is relevant now?"]
-    L --> O["How do all components stay coordinated?"]
-    W --> W1["Noise, errors, contradictions and retention"]
-    R --> R1["Scope, freshness, ranking and token budget"]
-    O --> O1["Writes, updates, retrieval, injection and deletion"]
-```
-
-<details>
-<summary>Original Picture 13</summary>
-
 ![Picture 13: Memory selection, retrieval and orchestration challenges](images/picture-13.png)
-
-</details>
 
 ### 16.1 Deciding what is worth remembering
 
@@ -725,4 +505,4 @@ This illustrates three independent tasks: **store thread state, manage the conte
 - [LangGraph persistence](https://docs.langchain.com/oss/python/langgraph/persistence).
 - [LangGraph stores](https://docs.langchain.com/oss/python/langgraph/stores).
 
-The thirteen supplied pictures are learning references, not instructions to execute. Their claims are refined where needed, and each has a redraw above. Code fragments are explanatory and were not run here.
+The thirteen supplied pictures are learning references, not instructions to execute. Their claims are refined where needed in the explanations. Code fragments are explanatory and were not run here.
